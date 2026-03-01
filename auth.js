@@ -1,11 +1,11 @@
 // Auth utilities — shared across pages
-let supabase = null;
+let _sbClient = null;
 
 function initSupabase() {
-  if (!supabase && window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  if (!_sbClient && window.supabase) {
+    _sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   }
-  return supabase;
+  return _sbClient;
 }
 
 async function getUser() {
