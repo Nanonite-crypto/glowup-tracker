@@ -516,7 +516,7 @@ function openAI(){
 function closeAI(){
   aiOpen=false;
   stopActiveListening();
-  if('speechSynthesis' in window)speechSynthesis.cancel();
+  stopTTS();
   document.getElementById('ai-panel')?.remove();
 }
 
@@ -577,30 +577,30 @@ async function sendAIMsg(text){
   renderAIOverlay();
 }
 
-let cachedVoice=null;
-
-function loadVoices(){
-  if(!('speechSynthesis' in window))return;
-  const pick=()=>{
-    const voices=speechSynthesis.getVoices();
-    if(!voices.length)return;
-    const prefs=['Samantha','Daniel','Aaron','Google UK English Male','Google US English','Microsoft Guy','Microsoft Ryan','James','English United Kingdom','en-GB'];
-    for(const p of prefs){const v=voices.find(x=>x.name.includes(p));if(v){cachedVoice=v;return}}
-    cachedVoice=voices.find(v=>v.lang.startsWith('en')&&!v.name.includes('Female')&&!v.name.includes('Zira')&&!v.name.includes('Hazel'))||voices.find(v=>v.lang.startsWith('en'))||null;
-  };
-  pick();
-  speechSynthesis.addEventListener('voiceschanged',pick);
-}
+let ttsAudio=null;
 
 function speakText(text){
-  if(!('speechSynthesis' in window))return;
-  speechSynthesis.cancel();
   const clean=text.replace(/[\*\_\#\~\`]/g,'').replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim();
   if(!clean)return;
-  const u=new SpeechSynthesisUtterance(clean);
-  u.rate=0.92;u.pitch=0.95;u.volume=1;u.lang='en-US';
-  if(cachedVoice)u.voice=cachedVoice;
-  speechSynthesis.speak(u);
+  if(ttsAudio){ttsAudio.pause();ttsAudio=null}
+  fetch('/api/tts',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-auth-key':SECRET_KEY},
+    body:JSON.stringify({text:clean})
+  }).then(r=>{
+    if(!r.ok)return;
+    return r.blob();
+  }).then(blob=>{
+    if(!blob)return;
+    const url=URL.createObjectURL(blob);
+    ttsAudio=new Audio(url);
+    ttsAudio.play().catch(()=>{});
+    ttsAudio.onended=()=>{URL.revokeObjectURL(url);ttsAudio=null};
+  }).catch(()=>{});
+}
+
+function stopTTS(){
+  if(ttsAudio){ttsAudio.pause();ttsAudio=null}
 }
 
 function toggleMic(){
@@ -704,7 +704,6 @@ document.getElementById('import-file').addEventListener('change',handleImport);
   checkAch();
   render();
   if(localStorage.getItem('ai_enabled')==='true')startWakeWord();
-  loadVoices();
 })();
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}

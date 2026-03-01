@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glowup-v5';
+const CACHE_NAME = 'glowup-v6';
 const ASSETS = ['/config.js', '/auth.js', '/manifest.json', '/icon-192.svg', '/icon-512.svg'];
 
 self.addEventListener('install', e => {
