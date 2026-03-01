@@ -1,5 +1,5 @@
-const CACHE_NAME = 'glowup-v3';
-const ASSETS = ['/app.html', '/config.js', '/auth.js', '/manifest.json', '/icon-192.svg', '/icon-512.svg'];
+const CACHE_NAME = 'glowup-v4';
+const ASSETS = ['/config.js', '/auth.js', '/manifest.json', '/icon-192.svg', '/icon-512.svg'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
@@ -17,6 +17,12 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('/app.html')))
+    fetch(e.request).then(r => {
+      if (r.ok) {
+        const clone = r.clone();
+        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+      }
+      return r;
+    }).catch(() => caches.match(e.request).then(r => r || caches.match('/app.html')))
   );
 });
