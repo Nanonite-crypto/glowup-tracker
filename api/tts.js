@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const tts = new MsEdgeTTS();
-    await tts.setMetadata('en-US-GuyNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
+    await tts.setMetadata('en-US-JennyNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
     const { audioStream } = tts.toStream(text.slice(0, 1000));
 
     const chunks = [];
