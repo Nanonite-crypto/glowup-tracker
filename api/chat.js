@@ -1,3 +1,8 @@
+const MODELS = [
+  'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+  'arcee-ai/trinity-large-preview:free'
+];
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
@@ -24,29 +29,28 @@ module.exports = async function handler(req, res) {
   }
   messages.push({ role: 'user', content: message });
 
-  try {
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
-        messages
-      })
-    });
+  for (const model of MODELS) {
+    try {
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({ model, messages })
+      });
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content;
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content;
 
-    if (reply) {
-      return res.status(200).json({ reply });
-    } else if (data.error) {
-      return res.status(500).json({ error: data.error.message || 'API error' });
+      if (reply) {
+        return res.status(200).json({ reply });
+      }
+      if (data.error) continue;
+    } catch (err) {
+      continue;
     }
-    return res.status(500).json({ error: 'Empty response from model' });
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to reach API' });
   }
+
+  return res.status(500).json({ error: 'All models unavailable, try again' });
 };
