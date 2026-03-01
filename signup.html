@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<meta name="theme-color" content="#08080f">
+<title>Sign Up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#08080f;--surface:#10101c;--surface2:#161625;--border:#1e1e35;--green:#00ff88;--green-dim:#00ff8830;--green-glow:#00ff8818;--blue:#00ccff;--red:#ff4466;--text:#e8e8f0;--text-dim:#8888a0;--text-faint:#555568}
+html,body{height:100%;overflow:auto}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
+
+.bg-glow{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.bg-glow::before{content:'';position:absolute;top:-40%;left:-20%;width:60%;height:80%;background:radial-gradient(ellipse,#00ff8808 0%,transparent 70%);animation:drift 20s ease-in-out infinite}
+.bg-glow::after{content:'';position:absolute;bottom:-30%;right:-15%;width:50%;height:70%;background:radial-gradient(ellipse,#00ccff06 0%,transparent 70%);animation:drift 25s ease-in-out infinite reverse}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-20px)}}
+
+.auth-container{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;z-index:1}
+.auth-card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px 40px;box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.02)}
+
+.auth-logo{text-align:center;margin-bottom:36px}
+.auth-logo-icon{font-size:40px;margin-bottom:8px;display:block}
+.auth-logo-text{font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;letter-spacing:4px;background:linear-gradient(135deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.auth-logo-sub{font-size:12px;color:var(--text-faint);letter-spacing:2px;margin-top:4px}
+
+.auth-title{font-size:20px;font-weight:700;margin-bottom:4px}
+.auth-subtitle{font-size:13px;color:var(--text-dim);margin-bottom:28px}
+
+.field{margin-bottom:18px}
+.field-label{display:block;font-size:12px;font-weight:600;color:var(--text-dim);letter-spacing:.5px;margin-bottom:6px}
+.field-input{width:100%;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;font-family:'Inter',system-ui,sans-serif;transition:border-color .2s,box-shadow .2s;outline:none}
+.field-input:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--green-dim)}
+.field-input::placeholder{color:var(--text-faint)}
+.field-hint{font-size:11px;color:var(--text-faint);margin-top:4px}
+
+.auth-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--green),#00cc66);border:none;border-radius:10px;color:#080810;font-size:15px;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:.5px;cursor:pointer;transition:transform .15s,box-shadow .15s;margin-top:6px}
+.auth-btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px var(--green-dim)}
+.auth-btn:active{transform:scale(.98)}
+.auth-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+.auth-error{padding:10px 14px;background:#ff446615;border:1px solid #ff446630;border-radius:8px;font-size:12px;color:var(--red);margin-bottom:16px;display:none}
+.auth-error.show{display:block}
+
+.auth-success{padding:10px 14px;background:#00ff8815;border:1px solid #00ff8830;border-radius:8px;font-size:12px;color:var(--green);margin-bottom:16px;display:none}
+.auth-success.show{display:block}
+
+.auth-footer{text-align:center;margin-top:24px;font-size:13px;color:var(--text-dim)}
+.auth-footer a{color:var(--green);text-decoration:none;font-weight:600}
+.auth-footer a:hover{text-decoration:underline}
+
+@media(max-width:480px){
+  .auth-card{padding:36px 24px;border-radius:16px}
+  .auth-logo-text{font-size:24px}
+}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="auth-logo-icon">\u2694\uFE0F</span>
+      <div class="auth-logo-text">GLOW UP</div>
+      <div class="auth-logo-sub">RPG TRACKER</div>
+    </div>
+    <div class="auth-title">Create your character</div>
+    <div class="auth-subtitle">Start your glow-up journey</div>
+    <div class="auth-error" id="error"></div>
+    <div class="auth-success" id="success"></div>
+    <form id="signup-form" autocomplete="on">
+      <div class="field">
+        <label class="field-label">Display Name</label>
+        <input class="field-input" type="text" id="display-name" placeholder="Your character name" required autocomplete="name" minlength="2" maxlength="20">
+        <div class="field-hint">This shows on your profile header</div>
+      </div>
+      <div class="field">
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+      </div>
+      <div class="field">
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" id="password" placeholder="Min 6 characters" required autocomplete="new-password" minlength="6">
+      </div>
+      <button class="auth-btn" type="submit" id="submit-btn">Create Account</button>
+    </form>
+    <div class="auth-footer">Already have an account? <a href="/login">Sign in</a></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/config.js"></script>
+<script src="/auth.js"></script>
+<script>
+(async()=>{
+  initSupabase();
+  const user=await getUser();
+  if(user) return window.location.href='/app';
+
+  const form=document.getElementById('signup-form');
+  const errEl=document.getElementById('error');
+  const successEl=document.getElementById('success');
+  const btn=document.getElementById('submit-btn');
+
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    errEl.classList.remove('show');
+    successEl.classList.remove('show');
+    btn.disabled=true;btn.textContent='Creating account...';
+
+    const displayName=document.getElementById('display-name').value.trim();
+    const email=document.getElementById('email').value.trim();
+    const password=document.getElementById('password').value;
+
+    if(password.length<6){
+      errEl.textContent='Password must be at least 6 characters';errEl.classList.add('show');
+      btn.disabled=false;btn.textContent='Create Account';return;
+    }
+
+    const{data,error}=await signUp(email,password,displayName);
+    if(error){
+      errEl.textContent=error.message;errEl.classList.add('show');
+      btn.disabled=false;btn.textContent='Create Account';
+    }else if(data.user&&!data.session){
+      successEl.textContent='Check your email to confirm your account, then sign in.';
+      successEl.classList.add('show');
+      btn.disabled=false;btn.textContent='Create Account';
+    }else{
+      window.location.href='/app';
+    }
+  });
+})();
+</script>
+</body>
+</html>
