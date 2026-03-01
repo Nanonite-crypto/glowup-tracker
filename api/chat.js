@@ -29,18 +29,13 @@ module.exports = async function handler(req, res) {
   messages.push({ role: 'user', content: message });
 
   try {
-    const stream = await openrouter.chat.send({
+    const result = await openrouter.chat.send({
       model: 'arcee-ai/trinity-large-preview:free',
       messages,
-      stream: true
+      stream: false
     });
 
-    let reply = '';
-    for await (const chunk of stream) {
-      const content = chunk.choices[0]?.delta?.content;
-      if (content) reply += content;
-    }
-
+    const reply = result.choices?.[0]?.message?.content;
     if (reply) {
       return res.status(200).json({ reply });
     }
