@@ -172,7 +172,7 @@ button{cursor:pointer;-webkit-user-select:none;user-select:none;font-family:inhe
 .ai-overlay{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;animation:fadeIn .2s}
 .ai-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .ai-panel-inner{position:relative;z-index:1;display:flex;flex-direction:column;height:100%;max-width:500px;width:100%;margin:0 auto;background:var(--bg)}
-.ai-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;flex-shrink:0;border-bottom:1px solid var(--border)}
+.ai-head{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;padding-top:calc(env(safe-area-inset-top,16px) + 8px);flex-shrink:0;border-bottom:1px solid var(--border)}
 .ai-title{font-size:14px;font-weight:700;color:var(--t1);letter-spacing:.3px}
 .ai-close{width:36px;height:36px;border-radius:50%;background:var(--s2);border:1px solid var(--border)!important;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s}
 .ai-close:hover{background:var(--s3);border-color:var(--border-h)!important}
@@ -182,7 +182,7 @@ button{cursor:pointer;-webkit-user-select:none;user-select:none;font-family:inhe
 .ai-msg.u{align-self:flex-end;background:var(--s2);color:var(--t1);border-bottom-right-radius:4px}
 .ai-msg.a{align-self:flex-start;background:var(--accent-dark);color:var(--t2);border-bottom-left-radius:4px;border:1px solid var(--accent-dim)}
 .ai-msg.sys{align-self:center;color:var(--t4);font-size:11px;font-style:italic}
-.ai-input{display:flex;gap:8px;padding:12px 20px env(safe-area-inset-bottom,12px);background:var(--s1);border-top:1px solid var(--border);flex-shrink:0}
+.ai-input{display:flex;gap:8px;padding:12px 20px;padding-bottom:calc(env(safe-area-inset-bottom,12px) + 8px);background:var(--s1);border-top:1px solid var(--border);flex-shrink:0}
 .ai-text{flex:1;padding:10px 12px;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--t1);font-size:13px;font-family:'Inter',system-ui,sans-serif;outline:none;resize:none;min-height:40px;max-height:80px}
 .ai-text:focus{border-color:var(--accent)}
 .ai-mic{width:40px;height:40px;border-radius:10px;background:var(--s2);border:1px solid var(--border)!important;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
@@ -577,22 +577,29 @@ async function sendAIMsg(text){
   renderAIOverlay();
 }
 
-function pickVoice(){
-  const voices=speechSynthesis.getVoices();
-  if(!voices.length)return null;
-  const prefs=['Google UK English Male','Google US English','Microsoft Guy','Microsoft Ryan','Daniel','Aaron','James','English United Kingdom','en-GB'];
-  for(const p of prefs){const v=voices.find(x=>x.name.includes(p)||x.lang.includes(p));if(v)return v}
-  return voices.find(v=>v.lang.startsWith('en')&&!v.name.includes('Female')&&!v.name.includes('Zira')&&!v.name.includes('Hazel'))||voices.find(v=>v.lang.startsWith('en'))||null;
+let cachedVoice=null;
+
+function loadVoices(){
+  if(!('speechSynthesis' in window))return;
+  const pick=()=>{
+    const voices=speechSynthesis.getVoices();
+    if(!voices.length)return;
+    const prefs=['Samantha','Daniel','Aaron','Google UK English Male','Google US English','Microsoft Guy','Microsoft Ryan','James','English United Kingdom','en-GB'];
+    for(const p of prefs){const v=voices.find(x=>x.name.includes(p));if(v){cachedVoice=v;return}}
+    cachedVoice=voices.find(v=>v.lang.startsWith('en')&&!v.name.includes('Female')&&!v.name.includes('Zira')&&!v.name.includes('Hazel'))||voices.find(v=>v.lang.startsWith('en'))||null;
+  };
+  pick();
+  speechSynthesis.addEventListener('voiceschanged',pick);
 }
 
 function speakText(text){
   if(!('speechSynthesis' in window))return;
   speechSynthesis.cancel();
-  const clean=text.replace(/[\*\_\#\~\`]/g,'').replace(/https?:\/\/\S+/g,'');
+  const clean=text.replace(/[\*\_\#\~\`]/g,'').replace(/https?:\/\/\S+/g,'').replace(/\s+/g,' ').trim();
+  if(!clean)return;
   const u=new SpeechSynthesisUtterance(clean);
-  u.rate=0.95;u.pitch=0.95;u.volume=1;
-  const v=pickVoice();
-  if(v)u.voice=v;
+  u.rate=0.92;u.pitch=0.95;u.volume=1;u.lang='en-US';
+  if(cachedVoice)u.voice=cachedVoice;
   speechSynthesis.speak(u);
 }
 
@@ -697,7 +704,7 @@ document.getElementById('import-file').addEventListener('change',handleImport);
   checkAch();
   render();
   if(localStorage.getItem('ai_enabled')==='true')startWakeWord();
-  speechSynthesis.getVoices();
+  loadVoices();
 })();
 
 if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js').catch(()=>{})}
