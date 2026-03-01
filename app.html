@@ -252,17 +252,51 @@ let restTimerRemaining = 0;
 let restTimerInterval = null;
 let restTimerRunning = false;
 let restTimerDone = false;
+let currentUserId = null;
+let saveTimeout = null;
+let realtimeChannel = null;
 
-function load(){
+function loadLocal(){
   try{
     const s=localStorage.getItem(STORAGE_KEY);
-    if(s) data={...DEFAULT,...JSON.parse(s)};
-    if(!data.protein) data.protein={};
-    if(!data.achievements) data.achievements=[];
+    if(s){data={...DEFAULT,...JSON.parse(s)};if(!data.protein)data.protein={};if(!data.achievements)data.achievements=[]}
   }catch(e){}
 }
+
+async function loadCloud(){
+  try{
+    const sb=initSupabase();
+    const{data:row}=await sb.from('user_data').select('data').eq('user_id',currentUserId).single();
+    if(row&&row.data){data={...DEFAULT,...row.data};if(!data.protein)data.protein={};if(!data.achievements)data.achievements=[];localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
+  }catch(e){loadLocal()}
+}
+
 function save(){
   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}catch(e){}
+  clearTimeout(saveTimeout);
+  saveTimeout=setTimeout(()=>saveCloud(),300);
+}
+
+async function saveCloud(){
+  if(!currentUserId) return;
+  try{
+    const sb=initSupabase();
+    await sb.from('user_data').upsert({user_id:currentUserId,data:data,updated_at:new Date().toISOString()},{onConflict:'user_id'});
+  }catch(e){}
+}
+
+function subscribeRealtime(){
+  const sb=initSupabase();
+  realtimeChannel=sb.channel('user-data-sync')
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'user_data',filter:`user_id=eq.${currentUserId}`},(payload)=>{
+      if(payload.new&&payload.new.data){
+        data={...DEFAULT,...payload.new.data};
+        if(!data.protein)data.protein={};
+        if(!data.achievements)data.achievements=[];
+        localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+        render();
+      }
+    }).subscribe();
 }
 function today(){return new Date().toISOString().split('T')[0]}
 function fmtDate(s){const d=new Date(s+'T12:00:00');return d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})}
@@ -690,9 +724,12 @@ document.getElementById('import-file').addEventListener('change',handleImport);
   initSupabase();
   const user=await requireAuth();
   if(!user) return;
+  currentUserId=user.id;
   playerName=await getDisplayName()||'Player';
+  loadLocal();
+  await loadCloud();
+  subscribeRealtime();
   document.getElementById('loading').style.display='none';
-  load();
   checkAchievements();
   render();
 })();
