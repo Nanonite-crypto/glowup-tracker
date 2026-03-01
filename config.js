@@ -1,4 +1,2 @@
-// Supabase Configuration
-// Replace these with your Supabase project credentials
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://nsvqjivbckwypjskembu.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5zdnFqaXZiY2t3eXBqc2tlbWJ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzODU3ODAsImV4cCI6MjA4Nzk2MTc4MH0.r0LGIFaxtKc10G3inOSz4I2uP7Ch8Kh7Je9-XjXb8fQ';
